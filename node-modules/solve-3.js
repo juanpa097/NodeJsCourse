@@ -6,8 +6,7 @@ var argv = require('yargs')
 var rect = require('./rectangle-2');
 
 function solveRect(l, b) {
-    console.log("Solving for rectangle with l = " +
-        l + " and b = " + b);
+    console.log("Solving for rectangle with l = " + l + " and b = " + b);
     rect(l, b, function(err, rectangle) {
         if (err) {
             console.log(err);
