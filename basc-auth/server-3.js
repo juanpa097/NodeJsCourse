@@ -1,6 +1,7 @@
 var express = require('express');
 var morgan = require('morgan');
-var cookieParser = require('cookie-parser');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
 
 var hostname = 'localhost';
 var port = 3000;
@@ -8,14 +9,21 @@ var port = 3000;
 var app = express();
 
 app.use(morgan('dev'));
-app.use(cookieParser('12345-67890-09876-54321')); // Signed Key
+
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: true,
+  resave: true,
+  store: new FileStore()
+}));
 
 function auth (req, res, next) {
   console.log(req.headers);
 
-  var authHeader = req.headers.authorization;
+  if (!req.session.use) {
+    var authHeader = req.headers.authorization;
 
-  if (!req.signedCookies.user) {
     if (!authHeader) {
       var err = new Error('You are not authenticated');
       err.status = 401;
@@ -28,7 +36,7 @@ function auth (req, res, next) {
     var pass = auth[1];
 
     if (user == 'admin' && pass == 'password') {
-      res.cookie('user','admin', {signed: true}); // Gives the cookie to the client.
+      req.session.user = 'admin';
       next(); // authorized
     } else {
       var err = new Error('You are not authenticated');
@@ -36,9 +44,13 @@ function auth (req, res, next) {
       next(err);
     }
   } else {
-    if (req.signedCookies.user === 'admin') {
-      console.log(req.signedCookies);
+    if (req.session.user === 'admin') {
+      console.log('req.session: ', req.session);
       next(); // Continue
+    } else {
+      var err = new Error('You are not authenticated');
+      err.status = 401;
+      next(err);
     }
   }
 }
