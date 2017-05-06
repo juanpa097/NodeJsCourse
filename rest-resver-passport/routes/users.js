@@ -38,11 +38,19 @@ router.post('/login', function(req, res, next) {
       }
 
       var token = Verify.getToken(user);
-              res.status(200).json({
-        status: 'Login successful!',
-        success: true,
-        token: token
-      });
+      if (user.admin === true) {
+        res.status(200).json({
+          status: 'Login successful as Admin!',
+          success: true,
+          token: token
+        });
+      } else {
+        res.status(200).json({
+          status: 'Login successful!',
+          success: true,
+          token: token
+        });
+      }
     });
   })(req,res,next);
 });
